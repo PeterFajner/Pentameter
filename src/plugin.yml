@@ -1,0 +1,5 @@
+name: "Pentameter"
+version: "0.0.1"
+author: "Peter Fajner mail@pfaj.ca"
+main: "ca.pfaj.pentameter.Pentameter"
+api-version: "1.18"
