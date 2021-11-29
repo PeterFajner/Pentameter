@@ -174,16 +174,18 @@ class Dictionary {
                     allPronounciations.add(newList);
                 }
             }
-            // create a new list of [entries in old list * pronounciation options for this word]
-            List<List<Pronounciation>> newList = new LinkedList<>();
-            for (var entry : allPronounciations) {
-                for (var option : word.pronounciationOptions()) {
-                    var copiedEntry = new LinkedList<>(List.copyOf(entry));
-                    copiedEntry.add(new Pronounciation(word.word(), option));
-                    newList.add(copiedEntry);
+            else {
+                // create a new list of [entries in old list * pronounciation options for this word]
+                List<List<Pronounciation>> newList = new LinkedList<>();
+                for (var entry : allPronounciations) {
+                    for (var option : word.pronounciationOptions()) {
+                        var copiedEntry = new LinkedList<>(List.copyOf(entry));
+                        copiedEntry.add(new Pronounciation(word.word(), option));
+                        newList.add(copiedEntry);
+                    }
                 }
+                allPronounciations = newList;
             }
-            allPronounciations = newList;
         }
 
         // check if there are any iambic options, and pick a particular pronounciation to use
@@ -204,7 +206,6 @@ class Dictionary {
         var lookingFor = Stress.LOW;
         StringBuilder coloured = new StringBuilder();
         for (var word : phrase) {
-            System.out.println(word.word());
             // break the word into fragments based on number of syllables
             // this isn't a good way to do this, but it's easy
             var w = word.word();
