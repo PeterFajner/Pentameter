@@ -131,7 +131,9 @@ class Dictionary {
         // silent "words", like joiners
         var silent = Set.of(List.of(Stress.SILENT));
         // unknown words are assumed to be one syllable and can be stressed or unstressed
-        var unknown = Set.of(List.of(new Stress[]{Stress.HIGH, Stress.LOW}));
+        var unknown = new HashSet<List<Stress>>();
+        unknown.add(List.of(new Stress[] {Stress.HIGH}));
+        unknown.add(List.of(new Stress[] {Stress.LOW}));
         // deconstruct the phrase, using spaces and dashes as joiners, and make a list of possible pronounciation options
         while (phrase != null) {
             String word;
@@ -153,7 +155,7 @@ class Dictionary {
                 phrase = phrase.substring(nextDash + 1);
             }
             // pronounciation options for this word; if not found, assume single syllable
-            var options = store.getOrDefault(word.toUpperCase(), unknown);
+            var options = store.getOrDefault(cleanWord(word), unknown);
             parsedWords.add(new PronounciationOptions(word, options));
             if (joiner != null) {
                 parsedWords.add(new PronounciationOptions(joiner, silent));
@@ -189,20 +191,27 @@ class Dictionary {
         }
 
         // check if there are any iambic options, and pick a particular pronounciation to use
-        List<Pronounciation> chosen = allPronounciations.get(0);
+        MaybeIambicPhrase chosen = colourPhrase(allPronounciations.get(0));
         for (var option : allPronounciations) {
-            if (Dictionary.isIambic(option)) {
-                chosen = option;
-                break;
+            var evaluatedPhrase = colourPhrase(option);
+            var iambic = evaluatedPhrase.isIambic();
+            if (iambic) {
+                chosen = evaluatedPhrase;
             }
         }
 
         // colour the chosen pronounciation
-        var coloured = colourPhrase(chosen);
-        return coloured;
+        return chosen.colouredString();
     }
 
-    public static String colourPhrase(List<Pronounciation> phrase) {
+    public static String cleanWord(String word) {
+        word = word.toUpperCase();
+        word = word.replaceAll("[^a-zA-Z]", "");
+        return word;
+    }
+
+    public static MaybeIambicPhrase colourPhrase(List<Pronounciation> phrase) {
+        var isIambic = true;
         var lookingFor = Stress.LOW;
         StringBuilder coloured = new StringBuilder();
         for (var word : phrase) {
@@ -229,25 +238,23 @@ class Dictionary {
                     coloured.append("§a");
                     coloured.append(fragment);
                     coloured.append("§r");
-                    coloured.append("gl");
                     lookingFor = Stress.HIGH;
                 } else if (syllable.equals(Stress.LOW) && lookingFor.equals(Stress.HIGH)) {
                     coloured.append("§d");
                     coloured.append(fragment);
                     coloured.append("§r");
-                    coloured.append("bl");
                     lookingFor = Stress.LOW;
+                    isIambic = false;
                 } else if (syllable.equals(Stress.HIGH) && lookingFor.equals(Stress.LOW)) {
                     coloured.append("§5");
                     coloured.append(fragment);
                     coloured.append("§r");
-                    coloured.append("bh");
                     lookingFor = Stress.HIGH;
+                    isIambic = false;
                 } else if (syllable.equals(Stress.HIGH) && lookingFor.equals(Stress.HIGH)) {
                     coloured.append("§2");
                     coloured.append(fragment);
                     coloured.append("§r");
-                    coloured.append("gh");
                     lookingFor = Stress.LOW;
                 } else if (syllable.equals(Stress.SILENT)) {
                     coloured.append("§r");
@@ -255,31 +262,12 @@ class Dictionary {
                 }
             }
         }
-        return coloured.toString();
+        return new MaybeIambicPhrase(coloured.toString(), isIambic);
     }
+}
 
-    public static boolean isIambic(List<Pronounciation> phrase) {
-        var lookingFor = Stress.LOW;
-        for (var word : phrase) {
-            for (var syllable : word.pronounciation()) {
-                if (syllable.equals(lookingFor)) {
-                    // if the syllable is good, switch which one we're looking for next loop
-                    if (lookingFor.equals(Stress.LOW)) {
-                        lookingFor = Stress.HIGH;
-                    } else {
-                        lookingFor = Stress.LOW;
-                    }
-                } else if (syllable.equals(Stress.SILENT)) {
-                    // ignore silent syllables
-                    continue;
-                } else {
-                    // if the syllable is bad, the phrase is not iambic
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
+record MaybeIambicPhrase(String colouredString, boolean isIambic) {
+
 }
 
 // a definite pronounciation for one word
