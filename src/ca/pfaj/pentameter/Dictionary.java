@@ -3,7 +3,17 @@ package ca.pfaj.pentameter;
 import java.util.*;
 
 class Dictionary {
-    Map<String, Word> store = new HashMap<>();
+    Map<String, Set<Pronounciation>> store = new HashMap<>();
+
+    // A single-syllable word can be either stressed or unstressed
+    static Set<Pronounciation> SINGLE = Set.of(
+            new Pronounciation[]{
+                    new Pronounciation(List.of(Stress.HIGH)),
+                    new Pronounciation(List.of(Stress.LOW)),
+            });
+
+    // A silent word
+    static Set<Pronounciation> SILENT = Set.of(new Pronounciation(List.of(Stress.SILENT)));
 
     /**
      * Add a word with a pronounciation
@@ -12,7 +22,7 @@ class Dictionary {
      */
     public void add(String word, Pronounciation pronounciation) {
         var entry = store.computeIfAbsent(word, k -> new Word(word, new HashSet<>()));
-        entry.pronounciationOptions().add(pronounciation);
+        entry.add(pronounciation);
     }
 
     /**
@@ -31,8 +41,9 @@ class Dictionary {
      * @param pronounciation the stress of the word's single syllable
      */
     public void add(String word, Stress pronounciation) {
-        var asArray = new Stress[]{pronounciation};
-        add(word, asArray);
+        var list = new LinkedList<Stress>();
+        list.add(pronounciation);
+        add(word, list);
     }
 
     @Deprecated
