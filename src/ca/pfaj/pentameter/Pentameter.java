@@ -101,12 +101,6 @@ public class Pentameter extends JavaPlugin {
     }
 }
 
-enum Stress {
-    HIGH,
-    LOW,
-    SILENT,
-}
-
 class Dictionary {
     Map<String, Set<List<Stress>>> store = new HashMap<>();
     
@@ -269,11 +263,6 @@ class Dictionary {
 record MaybeIambicPhrase(String colouredString, boolean isIambic) {
 
 }
-
-// a definite pronounciation for one word
-record Pronounciation(String word, List<Stress> pronounciation) {
-
-};
 
 // several possible pronounciations for one word
 record PronounciationOptions(String word, Set<List<Stress>> pronounciationOptions) {
