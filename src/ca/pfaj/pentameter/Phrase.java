@@ -6,7 +6,15 @@ import java.util.Optional;
 /**
  * A list of words
  */
-public class Phrase {
+public record Phrase(List<Word> words, Dictionary dictionary) {
+    public Phrase(String words, Dictionary dictionary) {
+        this(Phrase.parseWords(words, dictionary), dictionary);
+    }
+
+    static List<Word> parseWords(String words, Dictionary dictionary) {
+        throw new UnsupportedOperationException();
+    }
+
     public boolean isIambic() {
         throw new UnsupportedOperationException();
     }
@@ -31,6 +39,9 @@ public class Phrase {
     }
 }
 
+/**
+ * A phrase with a single, chosen pronounciation for all the words.
+ */
 record PronouncedPhrase(List<PronouncedWord> words) {
 
 }
