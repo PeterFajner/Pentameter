@@ -1,5 +1,7 @@
 package ca.pfaj.pentameter;
 
+import org.bukkit.plugin.PluginLogger;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +31,7 @@ public record Phrase(List<Word> words, Dictionary dictionary) {
                 // the phrase has only one word left
                 word = phrase;
                 joiner = null;
+                phrase = null;
             } else if (nextDash == -1 || nextSpace <= nextDash) {
                 // the next joiner is a space
                 word = phrase.substring(0, nextSpace);
@@ -189,6 +192,7 @@ record PronouncedPhrase(List<PronouncedWord> words) {
 
     public String colour() {
         var coloured = new StringBuilder();
+        var lookingFor = Stress.LOW; // expected syllable stress
         for (var word : words) {
             var name = word.name();
             var length = name.length();
@@ -205,7 +209,6 @@ record PronouncedPhrase(List<PronouncedWord> words) {
                 }
             }
             // colour each syllable
-            var lookingFor = Stress.LOW;
             for (int i = 0; i < numSyllables; i++) {
                 var syllable = word.pronounciation().stress().get(i);
                 var fragment = fragments.get(i);
@@ -213,39 +216,30 @@ record PronouncedPhrase(List<PronouncedWord> words) {
                     if (lookingFor.equals(Stress.LOW)) {
                         // found low, want low
                         coloured.append("§a");
-                        coloured.append(fragment);
-                        coloured.append("§r");
-                        lookingFor = Stress.HIGH;
                     } else {
                         // found low, want high
                         coloured.append("§d");
-                        coloured.append(fragment);
-                        coloured.append("§r");
-                        lookingFor = Stress.LOW;
                     }
+                    lookingFor = Stress.HIGH;
                 } else if (syllable.equals(Stress.HIGH)) {
                     if (lookingFor.equals(Stress.LOW)) {
                         // found high, want low
                         coloured.append("§5");
-                        coloured.append(fragment);
-                        coloured.append("§r");
-                        lookingFor = Stress.HIGH;
                     } else {
                         // found high, want high
                         coloured.append("§2");
-                        coloured.append(fragment);
-                        coloured.append("§r");
-                        lookingFor = Stress.LOW;
                     }
+                    lookingFor = Stress.LOW;
                 } else if (syllable.equals(Stress.SILENT)) {
                     coloured.append("§r");
-                    coloured.append(fragment);
                 }
+                // if the phrase is in iambic pentameter, bold it
+                if (isIambicPentameter()) {
+                    coloured.append("§l");
+                }
+                coloured.append(fragment);
+                coloured.append("§r");
             }
-        }
-        // if the phrase is in iambic pentameter, bold it as well
-        if (isIambicPentameter()) {
-            coloured.insert(0, "§l");
         }
         return coloured.toString();
     }

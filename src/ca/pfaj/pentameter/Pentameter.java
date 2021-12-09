@@ -108,16 +108,20 @@ public class Pentameter extends JavaPlugin {
     public void onDisable() {
     }
 
-    private void log(Level level, String msg) {
+    void log(Level level, String msg) {
         logger.log(new LogRecord(level, msg));
     }
 
-    private void warn(String msg) {
+    void warn(String msg) {
         log(Level.WARNING, msg);
     }
 
-    private void info(String msg) {
+    void info(String msg) {
         log(Level.INFO, msg);
+    }
+
+    void debug(String msg) {
+        log(Level.FINE, msg);
     }
 }
 
@@ -136,6 +140,8 @@ class ChatListener implements Listener {
             var msg = event.getMessage();
             var phrase = new Phrase(msg, plugin.dictionary);
             var coloured = phrase.colour();
+            plugin.info("pentameter: " + phrase.isIambicPentameter());
+            plugin.info("iambic: " + phrase.isIambic());
             event.setMessage(coloured);
         }
     }
