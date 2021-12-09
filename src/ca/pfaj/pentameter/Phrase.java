@@ -243,6 +243,10 @@ record PronouncedPhrase(List<PronouncedWord> words) {
                 }
             }
         }
+        // if the phrase is in iambic pentameter, bold it as well
+        if (isIambicPentameter()) {
+            coloured.insert(0, "§l");
+        }
         return coloured.toString();
     }
 }
