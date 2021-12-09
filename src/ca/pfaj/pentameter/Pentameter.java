@@ -16,7 +16,7 @@ import java.util.logging.LogRecord;
 
 public class Pentameter extends JavaPlugin {
     String DICT_FILENAME = "cmudict-0.7b";
-    String DICT_URL = "http://svn.code.sf.net/p/cmusphinx/code/trunk/cmudict/cmudict-0.7b";
+    String DICT_URL = "https://svn.code.sf.net/p/cmusphinx/code/trunk/cmudict/cmudict-0.7b";
     PluginLogger logger = new PluginLogger(this);
     Dictionary dictionary;
 

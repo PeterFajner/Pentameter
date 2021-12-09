@@ -29,7 +29,6 @@ public record Phrase(List<Word> words, Dictionary dictionary) {
                 // the phrase has only one word left
                 word = phrase;
                 joiner = null;
-                word = null;
             } else if (nextDash == -1 || nextSpace <= nextDash) {
                 // the next joiner is a space
                 word = phrase.substring(0, nextSpace);
@@ -54,11 +53,11 @@ public record Phrase(List<Word> words, Dictionary dictionary) {
     }
 
     public boolean isIambic() {
-        throw new UnsupportedOperationException();
+        return getIambicPronounciation().isPresent();
     }
 
     public boolean isIambicPentameter() {
-        throw new UnsupportedOperationException();
+        return getIambicPentameterPronounciation().isPresent();
     }
 
     /**
@@ -96,7 +95,7 @@ public record Phrase(List<Word> words, Dictionary dictionary) {
         // try to find iambic penameter, just iambic, or not iambic, in that order
         PronouncedPhrase firstIambicPentameter = null;
         PronouncedPhrase firstIambic = null;
-        PronouncedPhrase chosen = null;
+        PronouncedPhrase chosen = pronounciationOptions.iterator().next();
         for (var option : pronounciationOptions) {
             if (option.isIambicPentameter()) {
                 firstIambicPentameter = option;
@@ -108,12 +107,12 @@ public record Phrase(List<Word> words, Dictionary dictionary) {
             }
         }
         if (firstIambicPentameter != null) {
-            chosen = firstIambicPentameter
+            chosen = firstIambicPentameter;
         } else if (firstIambic != null) {
             chosen = firstIambic;
         }
         // colour the phrase
-        throw new UnsupportedOperationException();
+        return chosen.colour();
     }
 
     /**
@@ -121,7 +120,19 @@ public record Phrase(List<Word> words, Dictionary dictionary) {
      * @return the phrase's iambic pronounciation, if it exists
      */
     public Optional<PronouncedPhrase> getIambicPronounciation() {
-        throw new UnsupportedOperationException();
+        var iambicPentameterPronounciation = getIambicPentameterPronounciation();
+        // try to find iambic pentameter
+        if (iambicPentameterPronounciation.isPresent()) {
+            return iambicPentameterPronounciation;
+        }
+        // try to find other iambic
+        for (var phrase : uniqueProunounciations()) {
+            if (phrase.isIambic()) {
+                return Optional.of(phrase);
+            }
+        }
+        // return nothing
+        return Optional.empty();
     }
 
     /**
@@ -129,7 +140,12 @@ public record Phrase(List<Word> words, Dictionary dictionary) {
      * @return the phrase's iambic pentameter pronounciation, if it exists
      */
     public Optional<PronouncedPhrase> getIambicPentameterPronounciation() {
-        throw new UnsupportedOperationException();
+        for (var phrase : uniqueProunounciations()) {
+            if (phrase.isIambicPentameter()) {
+                return Optional.of(phrase);
+            }
+        }
+        return Optional.empty();
     }
 }
 
@@ -138,14 +154,95 @@ public record Phrase(List<Word> words, Dictionary dictionary) {
  */
 record PronouncedPhrase(List<PronouncedWord> words) {
     public boolean isIambic() {
-        throw new UnsupportedOperationException();
+        var expected = Stress.LOW;
+        for (var syllable : getStress()) {
+            if (syllable == Stress.HIGH && expected == Stress.HIGH) {
+                expected = Stress.LOW;
+            } else if (syllable == Stress.LOW && expected == Stress.LOW) {
+                expected = Stress.HIGH;
+            } else {
+                return false;
+            }
+        }
+        return true;
     }
 
     public boolean isIambicPentameter() {
-        throw new UnsupportedOperationException();
+        return this.isIambic() && this.getStress().size() == 10;
+    }
+
+    /**
+     * Get all of the syllables in this phrase in a single list, ignoring silent syllables
+     * @return all of the syllables in this phrase, ignoring silent syllables
+     */
+    public List<Stress> getStress() {
+        List<Stress> stress = new LinkedList<>();
+        for (var word : words) {
+            for (var syllable : word.pronounciation().stress()) {
+                if (syllable != Stress.SILENT) {
+                    stress.add(syllable);
+                }
+            }
+        }
+        return stress;
     }
 
     public String colour() {
-        throw new UnsupportedOperationException();
+        var coloured = new StringBuilder();
+        for (var word : words) {
+            var name = word.name();
+            var length = name.length();
+            var numSyllables = word.pronounciation().stress().size();
+            var syllableSize = (int) Math.floor((double) length / (double) numSyllables);
+            List<String> fragments = new LinkedList<>();
+            // break the word up into its constituent syllables in a naive way
+            for (int i = 0; i < numSyllables; i++) {
+                if (i < numSyllables - 1) {
+                    fragments.add(name.substring(i * syllableSize, (i+1) * syllableSize));
+                } else {
+                    // the last fragment may be larger
+                    fragments.add(name.substring(i * syllableSize));
+                }
+            }
+            // colour each syllable
+            var lookingFor = Stress.LOW;
+            for (int i = 0; i < numSyllables; i++) {
+                var syllable = word.pronounciation().stress().get(i);
+                var fragment = fragments.get(i);
+                if (syllable.equals(Stress.LOW)) {
+                    if (lookingFor.equals(Stress.LOW)) {
+                        // found low, want low
+                        coloured.append("§a");
+                        coloured.append(fragment);
+                        coloured.append("§r");
+                        lookingFor = Stress.HIGH;
+                    } else {
+                        // found low, want high
+                        coloured.append("§d");
+                        coloured.append(fragment);
+                        coloured.append("§r");
+                        lookingFor = Stress.LOW;
+                    }
+                } else if (syllable.equals(Stress.HIGH)) {
+                    if (lookingFor.equals(Stress.LOW)) {
+                        // found high, want low
+                        coloured.append("§5");
+                        coloured.append(fragment);
+                        coloured.append("§r");
+                        lookingFor = Stress.HIGH;
+                    } else {
+                        // found high, want high
+                        coloured.append("§2");
+                        coloured.append(fragment);
+                        coloured.append("§r");
+                        lookingFor = Stress.LOW;
+                    }
+                } else if (syllable.equals(Stress.SILENT)) {
+                    coloured.append("§r");
+                    coloured.append(fragment);
+                }
+            }
+        }
+        return coloured.toString();
     }
 }
