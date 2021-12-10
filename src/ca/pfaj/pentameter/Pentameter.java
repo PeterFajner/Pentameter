@@ -1,11 +1,14 @@
 package ca.pfaj.pentameter;
 
 import org.apache.commons.io.FileUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginLogger;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -137,12 +140,23 @@ class ChatListener implements Listener {
     public void onPlayerJoin(AsyncPlayerChatEvent event) {
         // async means a player sent it, as opposed to a plugin speaking for them
         if (event.isAsynchronous()) {
+            // colour message
             var msg = event.getMessage();
             var phrase = new Phrase(msg, plugin.dictionary);
             var coloured = phrase.colour();
-            plugin.info("pentameter: " + phrase.isIambicPentameter());
-            plugin.info("iambic: " + phrase.isIambic());
             event.setMessage(coloured);
+            // apply status effects - has to be done on main thread
+            Bukkit.getScheduler().runTask(plugin, new Thread(() -> {
+                System.out.println("Running potion effect thread");
+                var player = event.getPlayer();
+                if (phrase.isIambicPentameter()) {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 30*20, 1));
+                } else if (phrase.isIambic()) {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 10*20, 0));
+                } else {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 5*20, 0));
+                }
+            }));
         }
     }
 }
