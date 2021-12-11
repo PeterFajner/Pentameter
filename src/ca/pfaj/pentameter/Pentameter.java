@@ -1,5 +1,7 @@
 package ca.pfaj.pentameter;
 
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -144,16 +146,24 @@ class ChatListener implements Listener {
             var msg = event.getMessage();
             var phrase = new Phrase(msg, plugin.dictionary);
             var coloured = phrase.colour();
-            //event.setMessage(coloured);
-            // send coloured message to each player
+            // add the speaker's name, since it doesn't get send automatically when sending per-player messages
+            var playerName_ = "<" + event.getPlayer().getDisplayName() + "> ";
+            var playerName = new ComponentBuilder(playerName_).create();
+            // combine the speaker's name with the coloured message (not the cleanest way to combine arrays, maybe)
+            List<BaseComponent> message_ = new ArrayList<>(List.of(playerName));
+            message_.addAll(List.of(coloured));
+            BaseComponent[] message = message_.toArray(new BaseComponent[]{});
+            // cancel the chat event
+            event.setCancelled(true);
+            // send coloured message to each player, and log in the server console
             Bukkit.getScheduler().runTask(plugin, new Thread(() -> {
                 for (var player : Bukkit.getServer().getOnlinePlayers()) {
-                    player.spigot().sendMessage(coloured);
+                    player.spigot().sendMessage(message);
                 }
+                Bukkit.getLogger().info(playerName_ + msg);
             }));
             // apply status effects - has to be done on main thread
             Bukkit.getScheduler().runTask(plugin, new Thread(() -> {
-                System.out.println("Running potion effect thread");
                 var player = event.getPlayer();
                 if (phrase.isIambicPentameter()) {
                     player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 30*20, 1));
