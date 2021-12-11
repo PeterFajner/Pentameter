@@ -112,7 +112,11 @@ public record Phrase(List<Word> words, Dictionary dictionary) {
             } else if (option.isIambic()) {
                 firstIambic = option;
             } else {
-                chosen = option;
+                if (option.getNumIncorrectSyllables() < chosen.getNumIncorrectSyllables()) {
+                    // this pronounciation isn't iambic, but it has fewer incorrect syllables, so choose it if no iambic
+                    // pronounciation is found
+                    chosen = option;
+                }
             }
         }
         if (firstIambicPentameter != null) {
@@ -161,7 +165,42 @@ public record Phrase(List<Word> words, Dictionary dictionary) {
 /**
  * A phrase with a single, chosen pronounciation for all the words.
  */
-record PronouncedPhrase(List<PronouncedWord> words) {
+class PronouncedPhrase {
+    List<PronouncedWord> words;
+    int numIncorrectSyllables = 0;
+    boolean iambic = true;
+
+    public PronouncedPhrase(List<PronouncedWord> words) {
+        this.words = words;
+        // check if phrase is iambic
+        var expected = Stress.LOW;
+        for (var syllable : getStress()) {
+            if (syllable == Stress.HIGH) {
+                if (expected == Stress.HIGH) {
+                    // expected high, found high
+                    expected = Stress.LOW;
+                } else {
+                    // expected low, found high
+                    numIncorrectSyllables++;
+                    iambic = false;
+                }
+            } else {
+                if (expected == Stress.HIGH) {
+                    // expected high, found low
+                    numIncorrectSyllables++;
+                    iambic = false;
+                } else {
+                    // expected low, found low
+                    expected = Stress.HIGH;
+                }
+            }
+        }
+    }
+
+    public int getNumIncorrectSyllables() {
+        return numIncorrectSyllables;
+    }
+
     public boolean isIambic() {
         var expected = Stress.LOW;
         for (var syllable : getStress()) {
