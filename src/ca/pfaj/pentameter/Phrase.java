@@ -216,6 +216,7 @@ record PronouncedPhrase(List<PronouncedWord> words) {
                 var syllable = word.pronounciation().stress().get(i);
                 var fragment = fragments.get(i);
                 coloured.append(fragment);
+                coloured.reset();
                 if (syllable.equals(Stress.LOW)) {
                     if (lookingFor.equals(Stress.LOW)) {
                         // found low, want low
