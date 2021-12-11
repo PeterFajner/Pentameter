@@ -202,17 +202,7 @@ class PronouncedPhrase {
     }
 
     public boolean isIambic() {
-        var expected = Stress.LOW;
-        for (var syllable : getStress()) {
-            if (syllable == Stress.HIGH && expected == Stress.HIGH) {
-                expected = Stress.LOW;
-            } else if (syllable == Stress.LOW && expected == Stress.LOW) {
-                expected = Stress.HIGH;
-            } else {
-                return false;
-            }
-        }
-        return true;
+        return iambic;
     }
 
     public boolean isIambicPentameter() {
