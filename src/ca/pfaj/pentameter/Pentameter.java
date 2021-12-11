@@ -144,7 +144,13 @@ class ChatListener implements Listener {
             var msg = event.getMessage();
             var phrase = new Phrase(msg, plugin.dictionary);
             var coloured = phrase.colour();
-            event.setMessage(coloured);
+            //event.setMessage(coloured);
+            // send coloured message to each player
+            Bukkit.getScheduler().runTask(plugin, new Thread(() -> {
+                for (var player : Bukkit.getServer().getOnlinePlayers()) {
+                    player.spigot().sendMessage(coloured);
+                }
+            }));
             // apply status effects - has to be done on main thread
             Bukkit.getScheduler().runTask(plugin, new Thread(() -> {
                 System.out.println("Running potion effect thread");

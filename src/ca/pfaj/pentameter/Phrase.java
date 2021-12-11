@@ -1,5 +1,8 @@
 package ca.pfaj.pentameter;
 
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.plugin.PluginLogger;
 
 import java.util.LinkedList;
@@ -92,7 +95,7 @@ public record Phrase(List<Word> words, Dictionary dictionary) {
     /**
      * Colour the phrase, choosing a pronounciation that is iambic if possible.
      */
-    public String colour() {
+    public BaseComponent[] colour() {
         // get all unique pronounciations for this phrase
         var pronounciationOptions = uniqueProunounciations();
         // try to find iambic penameter, just iambic, or not iambic, in that order
@@ -190,8 +193,8 @@ record PronouncedPhrase(List<PronouncedWord> words) {
         return stress;
     }
 
-    public String colour() {
-        var coloured = new StringBuilder();
+    public BaseComponent[] colour() {
+        var coloured = new ComponentBuilder();
         var lookingFor = Stress.LOW; // expected syllable stress
         for (var word : words) {
             var name = word.name();
@@ -212,35 +215,34 @@ record PronouncedPhrase(List<PronouncedWord> words) {
             for (int i = 0; i < numSyllables; i++) {
                 var syllable = word.pronounciation().stress().get(i);
                 var fragment = fragments.get(i);
+                coloured.append(fragment);
                 if (syllable.equals(Stress.LOW)) {
                     if (lookingFor.equals(Stress.LOW)) {
                         // found low, want low
-                        coloured.append("§a");
+                        coloured.color(ChatColor.GREEN);
                     } else {
                         // found low, want high
-                        coloured.append("§d");
+                        coloured.color(ChatColor.LIGHT_PURPLE);
                     }
                     lookingFor = Stress.HIGH;
                 } else if (syllable.equals(Stress.HIGH)) {
                     if (lookingFor.equals(Stress.LOW)) {
                         // found high, want low
-                        coloured.append("§5");
+                        coloured.color(ChatColor.DARK_PURPLE);
                     } else {
                         // found high, want high
-                        coloured.append("§2");
+                        coloured.color(ChatColor.DARK_GREEN);
                     }
                     lookingFor = Stress.LOW;
                 } else if (syllable.equals(Stress.SILENT)) {
-                    coloured.append("§r");
+                    coloured.reset();
                 }
                 // if the phrase is in iambic pentameter, bold it
                 if (isIambicPentameter()) {
-                    coloured.append("§l");
+                    coloured.bold(true);
                 }
-                coloured.append(fragment);
-                coloured.append("§r");
             }
         }
-        return coloured.toString();
+        return coloured.create();
     }
 }
