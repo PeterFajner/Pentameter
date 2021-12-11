@@ -168,9 +168,9 @@ class ChatListener implements Listener {
                 if (phrase.isIambicPentameter()) {
                     player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 3*20, 1));
                 } else if (phrase.isIambic()) {
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, (int) (0.2*20), 0));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 1, 0));
                 } else {
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 5*20, 0));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 10*20, 0));
                 }
             }));
         }
