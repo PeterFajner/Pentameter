@@ -3,6 +3,8 @@ package ca.pfaj.pentameter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import org.bukkit.plugin.PluginLogger;
 
 import java.util.LinkedList;
@@ -221,18 +223,26 @@ record PronouncedPhrase(List<PronouncedWord> words) {
                     if (lookingFor.equals(Stress.LOW)) {
                         // found low, want low
                         coloured.color(ChatColor.GREEN);
+                        coloured.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                new Text(new ComponentBuilder(fragment + ": expected unstressed syllable, found unstressed syllable").color(ChatColor.GREEN).create())));
                     } else {
                         // found low, want high
                         coloured.color(ChatColor.LIGHT_PURPLE);
+                        coloured.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                new Text(new ComponentBuilder(fragment + ": expected stressed syllable, found unstressed syllable").color(ChatColor.LIGHT_PURPLE).create())));
                     }
                     lookingFor = Stress.HIGH;
                 } else if (syllable.equals(Stress.HIGH)) {
                     if (lookingFor.equals(Stress.LOW)) {
                         // found high, want low
                         coloured.color(ChatColor.DARK_PURPLE);
+                        coloured.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                new Text(new ComponentBuilder(fragment + ": expected unstressed syllable, found stressed syllable").color(ChatColor.DARK_PURPLE).create())));
                     } else {
                         // found high, want high
                         coloured.color(ChatColor.DARK_GREEN);
+                        coloured.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                new Text(new ComponentBuilder(fragment + ": expected stressed syllable, found stressed syllable").color(ChatColor.DARK_GREEN).create())));
                     }
                     lookingFor = Stress.LOW;
                 } else if (syllable.equals(Stress.SILENT)) {
