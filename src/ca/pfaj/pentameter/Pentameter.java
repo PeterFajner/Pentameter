@@ -166,11 +166,11 @@ class ChatListener implements Listener {
             Bukkit.getScheduler().runTask(plugin, new Thread(() -> {
                 var player = event.getPlayer();
                 if (phrase.isIambicPentameter()) {
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 30*20, 1));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 10*20, 1));
                 } else if (phrase.isIambic()) {
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 10*20, 0));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 3*20, 0));
                 } else {
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 5*20, 0));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 3*20, 0));
                 }
             }));
         }
