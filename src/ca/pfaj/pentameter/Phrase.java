@@ -26,7 +26,8 @@ public record Phrase(List<Word> words, Dictionary dictionary) {
     static List<Word> parseWords(String phrase, Dictionary dictionary) {
         List<Word> parsedWords = new LinkedList<>();
         // deconstruct the string, treating spaces and dashes as joiners
-        while (phrase != null) {
+        int guard = 1000; // prevent infinite loops
+        while (phrase != null && guard-- > 0) {
             String word; // next word that has been parsed
             String joiner; // joiner following the next word
             // check if word ends with a space or a dash, or the end of the phrase
